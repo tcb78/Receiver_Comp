@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/RecvfreqText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        tools:text="@string/RecvfreqText" />
+
+    <EditText
+        android:id="@+id/RecvfreqEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/RecvfreqText"
+        android:hint="@string/RecvfreqEdit"
+        android:inputType="numberSigned"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/DbDifferenceText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/RecvfreqEdit"
+        tools:text="@string/DbDifferenceText" />
+
+    <EditText
+        android:id="@+id/DbDifferenceEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/DbDifferenceText"
+        android:hint="@string/DbDifferenceEdit"
+        android:inputType="numberSigned"
+        android:textSize="12sp" />
+
+    <Switch
+        android:id="@+id/Switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/DbDifferenceEdit"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textOn="@string/playing"
+        android:textOff="@string/stopped" />
+
+</android.support.constraint.ConstraintLayout>

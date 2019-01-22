@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Receiver_Comp</string>
+    <string name="RecvfreqText">受信周波数(18000 ~ 22000 [Hz])</string>
+    <string name="RecvfreqEdit">18000 ~ 22000</string>
+    <string name="DbDifferenceText">周辺周波数との差</string>
+    <string name="DbDifferenceEdit">5 or 10 or 15</string>
+    <string name="playing">PLAYING</string>
+    <string name="stopped">STOPPED</string>
+</resources>
