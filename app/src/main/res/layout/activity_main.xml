@@ -7,42 +7,42 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/RecvfreqText"
+        android:id="@+id/receivingFreqText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        tools:text="@string/RecvfreqText" />
+        tools:text="@string/receivingFreqText" />
 
     <EditText
-        android:id="@+id/RecvfreqEdit"
+        android:id="@+id/receivingFreqEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/RecvfreqText"
-        android:hint="@string/RecvfreqEdit"
+        app:layout_constraintTop_toBottomOf="@+id/receivingFreqText"
+        android:hint="@string/receivingFreqEdit"
         android:inputType="numberSigned"
         android:textSize="12sp" />
 
     <TextView
-        android:id="@+id/DbDifferenceText"
+        android:id="@+id/decibelDiffText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/RecvfreqEdit"
-        tools:text="@string/DbDifferenceText" />
+        app:layout_constraintTop_toBottomOf="@+id/receivingFreqEdit"
+        tools:text="@string/decibelDiffText" />
 
     <EditText
-        android:id="@+id/DbDifferenceEdit"
+        android:id="@+id/decibelDiffEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/DbDifferenceText"
-        android:hint="@string/DbDifferenceEdit"
+        app:layout_constraintTop_toBottomOf="@+id/decibelDiffText"
+        android:hint="@string/decibelDiffEdit"
         android:inputType="numberSigned"
         android:textSize="12sp" />
 
     <Switch
-        android:id="@+id/Switch"
+        android:id="@+id/receivingSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/DbDifferenceEdit"
+        app:layout_constraintTop_toBottomOf="@+id/decibelDiffEdit"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:textOn="@string/playing"
