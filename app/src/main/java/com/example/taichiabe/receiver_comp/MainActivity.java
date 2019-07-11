@@ -68,18 +68,6 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
 
             final String FILENAME = String.valueOf(System.currentTimeMillis());
 
-            /*
-            if(RECVFREQ == 18000)      FFTPOINT = 3344;
-            else if(RECVFREQ == 18500) FFTPOINT = 3436;
-            else if(RECVFREQ == 19000) FFTPOINT = 3530;
-            else if(RECVFREQ == 19500) FFTPOINT = 3622;
-            else if(RECVFREQ == 20000) FFTPOINT = 3716;
-            else if(RECVFREQ == 20500) FFTPOINT = 3808;
-            else if(RECVFREQ == 21000) FFTPOINT = 3900;
-            else if(RECVFREQ == 21500) FFTPOINT = 3994;
-            else if(RECVFREQ == 22000) FFTPOINT = 4086;
-            */
-
             //実験用デバイスではRecvBufSize = 3584
             final int MIN_BUFFER_SIZE = AudioRecord.getMinBufferSize(
                     SAMPLING_RATE,
@@ -122,13 +110,11 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
                         //FFTクラスの作成と値の引き出し
                         double[] fftData = fastFourierTransform(shortData);
                         //パワースペクトル・デシベルの計算
-                        double[] decibelFrequencySpectrum = computePowerSpectrum(fftData);
-
+                        double[] spectrum = computePowerSpectrum(fftData);
                         //比較対象の周波数帯の平均デシベル値を取得
-                        int targetDecibelAve = computeComparisonTargetDecibelAve(RECEIVING_FREQ, decibelFrequencySpectrum);
-
+                        int targetDecibelAve = computeComparisonTargetDecibelAve(RECEIVING_FREQ, spectrum);
                         //ドップラー効果を考慮した接近検知
-                        detectApproaching(RECEIVING_FREQ, targetDecibelAve + DECIBEL_DIFF, decibelFrequencySpectrum, FILENAME);
+                        detectApproaching(RECEIVING_FREQ, targetDecibelAve + DECIBEL_DIFF, spectrum, FILENAME);
 
                         //sdlog.put("20khz2-" + filename, String.format("%.3f", de_start / 2 * resol) + ":" + String.valueOf(dbfs[de_start / 2]) + "  title:" + String.valueOf(total));
 
@@ -166,7 +152,6 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
             audioRec.stop();
             isRecording = false;
         }
-
     }
 
     @Override
@@ -182,12 +167,11 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
 
     /**
      * エンディアン変換
-     * @param   buf   受信バッファデータ
-     * @param   bufferSize  受信バッファサイズ
-     * @return  shortData   エンディアン変換後short型データ
+     * @param buf 受信バッファデータ
+     * @param bufferSize 受信バッファサイズ
+     * @return エンディアン変換後short型データ
      */
     public short[] toLittleEndian(byte[] buf, int bufferSize) {
-
         //エンディアン変換
         //配列bufをもとにByteBufferオブジェクトbfを作成
         ByteBuffer bf = ByteBuffer.wrap(buf);
@@ -196,8 +180,11 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
         //リトルエンディアンに変更
         bf.order(ByteOrder.LITTLE_ENDIAN);
         short[] shortData = new short[bufferSize / 2];
+
+        int bfFirst = bf.position();
+        int bfLast = bf.capacity() / 2;
         //位置から容量まで
-        for (int i = bf.position(); i < bf.capacity() / 2; i++) {
+        for (int i = bfFirst; i < bfLast; i++) {
             //short値を読むための相対getメソッド
             //現在位置の2バイトを読み出す
             shortData[i] = bf.getShort();
@@ -207,11 +194,10 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
 
     /**
      * 高速フーリエ変換
-     * @param   shortData   エンディアン変換後データ
-     * @return  fftData     フーリエ変換後データ
+     * @param shortData エンディアン変換後データ
+     * @return フーリエ変換後データ
      */
     public double[] fastFourierTransform(short[] shortData) {
-
         //FFTクラスの作成と値の引き渡し
         FFT4g fft = new FFT4g(FFT_SIZE);
         double[] fftData = new double[FFT_SIZE];
@@ -225,38 +211,35 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
 
     /**
      * パワースペクトル・デシベルの計算
-     * @param   fftData         フーリエ変換後のデータ
-     * @return  decibelFrequencySpectrum    デシベル値
+     * @param fftData フーリエ変換後のデータ
+     * @return デシベル値
      */
     public double[] computePowerSpectrum(double[] fftData) {
-
         //パワースペクトル・デシベルの計算
-        double[] powerSpectrum = new double[FFT_SIZE / 2];
+        double[] absoluteData = new double[FFT_SIZE / 2];
         //DeciBel Frequency Spectrum
-        double[] decibelFrequencySpectrum = new double[FFT_SIZE / 2];
+        double[] spectrum = new double[FFT_SIZE / 2];
         for(int i = 0; i < FFT_SIZE; i += 2) {
-            //dbfs[i / 2] = (int) (20 * Math.log10(Math.sqrt(Math.pow(FFTdata[i], 2) + Math.pow(FFTdata[i + 1], 2)) / dB_baseline));
-            powerSpectrum[i / 2] = Math.sqrt(Math.pow(fftData[i], 2) + Math.pow(fftData[i + 1], 2));
-            decibelFrequencySpectrum[i / 2] = (int) (20 * Math.log10(powerSpectrum[i / 2] / DB_BASELINE));
+            absoluteData[i / 2] = Math.sqrt(Math.pow(fftData[i], 2) + Math.pow(fftData[i + 1], 2));
+            spectrum[i / 2] = (int) (20 * Math.log10(absoluteData[i / 2] / DB_BASELINE));
         }
-        return decibelFrequencySpectrum;
+        return spectrum;
     }
 
     /**
      * 比較対象の周波数帯の平均デシベル値を取得
-     * @param freq      受信周波数
-     * @param decibelFrequencySpectrum  デシベル値周波数成分
-     * @return  targetDecibelAve    比較対象の周波数帯の平均デシベル値
+     * @param freq 受信周波数
+     * @param spectrum デシベル値周波数成分
+     * @return 比較対象の周波数帯の平均デシベル値
      */
-    public int computeComparisonTargetDecibelAve(int freq, double[] decibelFrequencySpectrum) {
-
+    public int computeComparisonTargetDecibelAve(int freq, double[] spectrum) {
         //比較対象の周波数を設定 comparison target
         int targetDecibelAve = 0, freqFrameIter = 0;
-        int ctFirstFrame = frameSetting(freq - 2000);
-        int ctLastFrame = frameSetting(freq - 1500);
+        int ctFirstFrame = frameSetting(freq - 2000) / 2;
+        int ctLastFrame = frameSetting(freq - 1500) / 2;
 
-        for (int j = ctFirstFrame / 2; j < ctLastFrame / 2; j++) {
-            targetDecibelAve += decibelFrequencySpectrum[j];
+        for (int j = ctFirstFrame; j < ctLastFrame; j++) {
+            targetDecibelAve += spectrum[j];
             freqFrameIter++;
         }
         try {
@@ -269,23 +252,22 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
 
     /**
      * 接近検知アルゴリズム
-     * @param freq          受信周波数
-     * @param decibel       検知デシベル値
-     * @param decibelFrequencySpectrum  デシベル値周波数成分
-     * @param filename      ファイル名
+     * @param freq 受信周波数
+     * @param decibel 検知デシベル値
+     * @param spectrum デシベル値周波数成分
+     * @param filename ファイル名
      */
-    public void detectApproaching(int freq, double decibel, double[] decibelFrequencySpectrum, String filename) {
-
+    public void detectApproaching(int freq, double decibel, double[] spectrum, String filename) {
         //ドップラー効果考慮 Doppler Effect
         //500Hzの幅で接近検知
-        int deFirstFrame = frameSetting(freq);
-        int deLastFrame = frameSetting(freq + 500);
+        int deFirstFrame = frameSetting(freq) / 2;
+        int deLastFrame = frameSetting(freq + 500) / 2;
 
-        for(int j = deFirstFrame / 2; j < deLastFrame / 2; j++) {
-            if(decibelFrequencySpectrum[j] > decibel) {
+        for(int i = deFirstFrame; i < deLastFrame; i++) {
+            if(spectrum[i] > decibel) {
                 //検知周波数
-                sdlog.put("freq2-" + filename, String.format(Locale.US, "%.3f", j * RESOLUTION)
-                                                                + ":" + String.valueOf(decibelFrequencySpectrum[j]) + "  title:" + String.valueOf(decibel));
+                sdlog.put("freq2-" + filename, String.format(Locale.US, "%.3f", i * RESOLUTION)
+                        + ":" + String.valueOf(spectrum[i]) + "  title:" + String.valueOf(decibel));
                 //インスタンス取得が外だから振動しない可能性あり
                 vib.cancel();
                 vib.vibrate(200);
@@ -300,7 +282,6 @@ public class MainActivity extends Activity implements OnCheckedChangeListener {
      * @return  frame   フレーム
      */
     public int frameSetting(int freq) {
-
         int frame = (int)(2 * freq / RESOLUTION);
         if(frame % 2 == 1) {
             frame++;
